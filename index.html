@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0B0B0C" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Posture Reset</title>
+
+  <style>
+    :root{
+      --bg:#0B0B0C;
+      --stroke:rgba(255,255,255,.08);
+      --stroke2:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --muted2:rgba(255,255,255,.45);
+      --accent:#3B82F6;
+      --good:#22C55E;
+      --bad:#EF4444;
+      --radius:18px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --tap: 52px;
+    }
+
+    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 50% -100px, rgba(59,130,246,.18), transparent 60%),
+                  radial-gradient(900px 600px at 90% 20%, rgba(255,255,255,.06), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      padding: max(14px, env(safe-area-inset-top)) 14px calc(90px + env(safe-area-inset-bottom)) 14px;
+    }
+
+    .wrap{ max-width:520px; margin:0 auto; }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      margin: 4px 0 14px;
+    }
+    .title{ display:flex; flex-direction:column; gap:2px; }
+    .title h1{ font-size:18px; margin:0; letter-spacing:.2px; }
+    .title p{ margin:0; font-size:12px; color:var(--muted); }
+
+    .iconBtn{
+      height:44px; width:44px; border-radius:14px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      display:grid; place-items:center;
+      box-shadow: 0 8px 18px rgba(0,0,0,.22);
+      user-select:none;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+      margin: 12px 0;
+      backdrop-filter: blur(8px);
+    }
+
+    .metaRow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .pillRow{ display:flex; gap:8px; flex-wrap:wrap; }
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      font-size:12px;
+      color:var(--muted);
+      display:flex; gap:8px; align-items:center;
+      user-select:none;
+    }
+    .dot{ width:8px; height:8px; border-radius:99px; background: var(--muted2); }
+    .dot.good{ background: var(--good); }
+    .dot.bad{ background: var(--bad); }
+
+    .timerBox{
+      display:flex; align-items:flex-end; justify-content:space-between;
+      gap:12px;
+      margin-top: 10px;
+    }
+    .time{
+      font-size:52px;
+      letter-spacing: -1.2px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .stepName{
+      font-size:14px;
+      color:var(--muted);
+      margin: 6px 0 0;
+    }
+
+    .progress{
+      height: 12px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      overflow:hidden;
+      margin-top: 12px;
+    }
+    .bar{
+      height:100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(59,130,246,.75), rgba(59,130,246,1));
+      border-radius:999px;
+      transition: width .25s ease;
+    }
+
+    /* Exercise visual block */
+    .exerciseVisual{
+      margin-top: 14px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.22);
+    }
+    .exerciseVisual img{
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .visualCaption{
+      padding: 10px 12px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      background: rgba(0,0,0,.14);
+    }
+
+    .cue{
+      margin: 12px 0 0;
+      padding: 12px;
+      border-radius: 14px;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.78);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    details{ margin-top: 10px; }
+    summary{
+      list-style:none;
+      cursor:pointer;
+      color:var(--muted);
+      font-size: 13px;
+      padding: 10px 0;
+      user-select:none;
+    }
+    summary::-webkit-details-marker{ display:none; }
+    ol{ margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+
+    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .field label{ display:block; color:var(--muted); font-size:12px; margin:10px 0 6px; }
+    .field input, .field select, .field textarea{
+      width:100%;
+      border-radius: 14px;
+      border:1px solid var(--stroke2);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      padding: 12px 12px;
+      font-size:16px;
+      outline:none;
+    }
+    .field textarea{ min-height: 86px; resize: vertical; }
+
+    .hint{ color:var(--muted); font-size:12px; line-height: 1.35; margin: 8px 0 0; }
+
+    /* Bottom action dock */
+    .dock{
+      position: fixed;
+      left: 0; right: 0;
+      bottom: 0;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom)) 14px;
+      background: linear-gradient(180deg, rgba(11,11,12,0), rgba(11,11,12,.7) 30%, rgba(11,11,12,.92));
+      backdrop-filter: blur(10px);
+    }
+    .dockInner{
+      max-width: 520px;
+      margin: 0 auto;
+      display:flex;
+      gap:10px;
+    }
+    .btn{
+      height: var(--tap);
+      border-radius: 16px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 15px;
+      flex: 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.28);
+      user-select:none;
+    }
+    .btn.primary{
+      background: linear-gradient(180deg, rgba(59,130,246,1), rgba(59,130,246,.82));
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .btn:disabled{ opacity: .45; }
+    .btn.danger{
+      background: rgba(239,68,68,.16);
+      border: 1px solid rgba(239,68,68,.28);
+      color: rgba(255,255,255,.92);
+    }
+
+    .rowBtns{ display:flex; gap:10px; margin-top: 10px; }
+    .rowBtns .btn{ height: 48px; border-radius: 14px; font-size: 14px; box-shadow:none; }
+
+    .tiny{
+      font-size:12px;
+      color: var(--muted2);
+      margin-top: 10px;
+    }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 92px;
+      background: rgba(20,20,24,.92);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.9);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      box-shadow: var(--shadow);
+      max-width: calc(520px - 28px);
+      width: calc(100% - 28px);
+      display:none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Posture Reset</h1>
+        <p>10 minutes a day. Your spine is not a museum exhibit.</p>
+      </div>
+      <button class="iconBtn" id="installHintBtn" type="button" aria-label="Add to Home Screen">⬇︎</button>
+    </header>
+
+    <section class="card">
+      <div class="metaRow">
+        <div class="pillRow">
+          <div class="pill" id="streakPill"><span class="dot"></span><span>Streak: 0</span></div>
+          <div class="pill" id="todayPill"><span class="dot bad"></span><span>Today: not done</span></div>
+        </div>
+        <div class="pill" id="modePill"><span class="dot"></span><span>Routine</span></div>
+      </div>
+
+      <div class="timerBox">
+        <div>
+          <div class="time" id="timer">10:00</div>
+          <div class="stepName" id="stepLine">Step 1/6 • 90/90 Breathing</div>
+        </div>
+        <div class="pill" id="remainPill">Remaining: 10:00</div>
+      </div>
+
+      <div class="progress" aria-label="progress">
+        <div class="bar" id="bar"></div>
+      </div>
+
+      <!-- Exercise Visual -->
+      <div class="exerciseVisual">
+        <img id="exerciseImg" src="assets/90-90.png" alt="Exercise demo" />
+        <div class="visualCaption" id="visualCaption">Tap image to enlarge.</div>
+      </div>
+
+      <div class="cue" id="cue">
+        Exhale fully. Feel ribs drop. Breathe into sides/back.
+      </div>
+
+      <details>
+        <summary>View steps</summary>
+        <ol id="stepsList"></ol>
+      </details>
+    </section>
+
+    <section class="card">
+      <div class="metaRow">
+        <h2 style="margin:0;font-size:15px;">Quick log</h2>
+        <div class="pill" id="lastLogPill"><span class="dot"></span><span>No logs</span></div>
+      </div>
+
+      <div class="field">
+        <label for="feel">How do you feel?</label>
+        <select id="feel">
+          <option value="better">Better</option>
+          <option value="same">Same</option>
+          <option value="worse">Worse</option>
+        </select>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="upper">Upper back tightness (0–10)</label>
+          <input id="upper" type="number" min="0" max="10" value="5" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="lower">Lower back tightness (0–10)</label>
+          <input id="lower" type="number" min="0" max="10" value="5" inputmode="numeric" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="notes">Notes</label>
+        <textarea id="notes" placeholder="Desk day, drove a lot, felt rib flare, etc."></textarea>
+      </div>
+
+      <div class="rowBtns">
+        <button class="btn" id="saveLogBtn" type="button">Save</button>
+        <button class="btn" id="exportBtn" type="button">Export</button>
+        <button class="btn danger" id="wipeBtn" type="button">Wipe</button>
+      </div>
+
+      <div class="hint" id="logPreview">No logs yet.</div>
+      <div class="tiny">
+        Safety: if you have numbness/tingling, weakness, shooting pain, or bowel/bladder changes, stop and get medical advice.
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="dock">
+    <div class="dockInner">
+      <button class="btn primary" id="startBtn" type="button">Start</button>
+      <button class="btn" id="pauseBtn" type="button" disabled>Pause</button>
+      <button class="btn" id="nextBtn" type="button" disabled>Next</button>
+      <button class="btn" id="resetBtn" type="button">Reset</button>
+    </div>
+  </div>
+
+<script>
+  // Offline support
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+
+  // Routine steps (seconds)
+  const steps = [
+    { name: "90/90 Breathing", secs: 120, cue: "Exhale fully. Feel ribs drop. Breathe into sides/back." },
+    { name: "Hip Flexor Stretch (L)", secs: 60, cue: "Squeeze left glute (back leg). Ribs down. No banana-back." },
+    { name: "Hip Flexor Stretch (R)", secs: 60, cue: "Squeeze right glute (back leg). Ribs stacked." },
+    { name: "Wall Angels", secs: 120, cue: "Slow. Ribs down. Don’t shrug. Control the range you have." },
+    { name: "Dead Bugs", secs: 120, cue: "Slow. Keep low back gently down. No flailing." },
+    { name: "Glute Bridges", secs: 120, cue: "Squeeze at top 2s. If lower back feels it, go slower." }
+  ];
+  const totalSecs = steps.reduce((a,s)=>a+s.secs,0);
+
+  // Visuals (GIF or PNG). Put these files in /assets with these names.
+  const visuals = [
+    "assets/90-90.png",
+    "assets/hip-flexor-l.png",
+    "assets/hip-flexor-r.png",
+    "assets/wall-angels.png",
+    "assets/dead-bugs.png",
+    "assets/glute-bridges.png"
+  ];
+
+  // Elements
+  const timerEl = document.getElementById('timer');
+  const remainPill = document.getElementById('remainPill');
+  const barEl = document.getElementById('bar');
+  const cueEl = document.getElementById('cue');
+  const stepLine = document.getElementById('stepLine');
+  const stepsList = document.getElementById('stepsList');
+  const exerciseImg = document.getElementById('exerciseImg');
+  const visualCaption = document.getElementById('visualCaption');
+
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const streakPill = document.getElementById('streakPill');
+  const todayPill = document.getElementById('todayPill');
+  const modePill = document.getElementById('modePill');
+  const installHintBtn = document.getElementById('installHintBtn');
+
+  const feelEl = document.getElementById('feel');
+  const upperEl = document.getElementById('upper');
+  const lowerEl = document.getElementById('lower');
+  const notesEl = document.getElementById('notes');
+  const saveLogBtn = document.getElementById('saveLogBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const wipeBtn = document.getElementById('wipeBtn');
+  const logPreview = document.getElementById('logPreview');
+  const lastLogPill = document.getElementById('lastLogPill');
+
+  const toastEl = document.getElementById('toast');
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.style.display = 'block';
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(()=> toastEl.style.display='none', 2200);
+  }
+
+  // Populate steps list
+  steps.forEach(s=>{
+    const li=document.createElement('li');
+    li.textContent = `${s.name} (${Math.round(s.secs/60)} min)`;
+    stepsList.appendChild(li);
+  });
+
+  // State
+  let stepIndex = 0;
+  let stepRemaining = steps[0].secs;
+  let elapsed = 0;
+  let running = false;
+  let tickHandle = null;
+
+  function fmt(secs){
+    const m = Math.floor(secs/60);
+    const s = secs%60;
+    return String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
+  }
+
+  // If a gif is missing, fall back to png with same base name
+  function setExerciseVisual(i){
+    const src = visuals[i] || visuals[0];
+    exerciseImg.src = src;
+    exerciseImg.alt = steps[i]?.name || "Exercise demo";
+    visualCaption.textContent = "Tap image to enlarge.";
+    exerciseImg.onerror = () => {
+      // try PNG fallback
+      if (exerciseImg.src.endsWith(".gif")) {
+        exerciseImg.src = exerciseImg.src.replace(".gif", ".png");
+      } else {
+        // last resort: do nothing
+      }
+    };
+  }
+
+  function updateUI(){
+    const current = steps[stepIndex];
+
+    timerEl.textContent = fmt(stepRemaining);
+    remainPill.textContent = "Remaining: " + fmt(Math.max(0, totalSecs - elapsed));
+    cueEl.textContent = current.cue;
+    stepLine.textContent = `Step ${stepIndex+1}/${steps.length} • ${current.name}`;
+
+    barEl.style.width = Math.min(100, (elapsed/totalSecs)*100) + "%";
+    modePill.innerHTML = `<span class="dot"></span><span>${running ? "Running" : "Routine"}</span>`;
+
+    setExerciseVisual(stepIndex);
+  }
+
+  function stopTick(){
+    if (tickHandle) clearInterval(tickHandle);
+    tickHandle = null;
+    running = false;
+    pauseBtn.disabled = true;
+    nextBtn.disabled = true;
+    startBtn.disabled = false;
+    startBtn.textContent = "Start";
+    updateUI();
+  }
+
+  function startTick(){
+    if (running) return;
+    running = true;
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+    nextBtn.disabled = false;
+    updateUI();
+
+    tickHandle = setInterval(()=>{
+      stepRemaining--;
+      elapsed++;
+
+      if (stepRemaining <= 0){
+        stepIndex++;
+        if (stepIndex >= steps.length){
+          stopTick();
+          markDoneToday();
+          toast("Done. Your spine approves. Quietly.");
+          return;
+        }
+        stepRemaining = steps[stepIndex].secs;
+        setExerciseVisual(stepIndex);
+      }
+      updateUI();
+    }, 1000);
+  }
+
+  startBtn.addEventListener('click', ()=>{
+    if (!running) startTick();
+  });
+
+  pauseBtn.addEventListener('click', ()=>{
+    if (!running) return;
+    clearInterval(tickHandle);
+    tickHandle = null;
+    running = false;
+    startBtn.disabled = false;
+    startBtn.textContent = "Resume";
+    pauseBtn.disabled = true;
+    updateUI();
+    toast("Paused");
+  });
+
+  nextBtn.addEventListener('click', ()=>{
+    stepIndex++;
+    if (stepIndex >= steps.length){
+      stopTick();
+      markDoneToday();
+      toast("Done. Skipping counts. Humans love loopholes.");
+      return;
+    }
+    stepRemaining = steps[stepIndex].secs;
+    updateUI();
+    toast("Next step");
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    stopTick();
+    stepIndex = 0;
+    stepRemaining = steps[0].secs;
+    elapsed = 0;
+    updateUI();
+    toast("Reset");
+  });
+
+  // Tap to enlarge (uses Fullscreen API if available)
+  exerciseImg.addEventListener("click", async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await exerciseImg.requestFullscreen?.();
+    } catch {}
+  });
+
+  // Streak + done tracking
+  const KEY = "posture_app_v3";
+  function loadState(){
+    try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; }
+  }
+  function saveState(state){
+    localStorage.setItem(KEY, JSON.stringify(state));
+  }
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
+  }
+  function ydayStr(){
+    const d = new Date();
+    d.setDate(d.getDate()-1);
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
+  }
+  function setPill(el, label, good){
+    const dotClass = good ? "dot good" : "dot bad";
+    el.innerHTML = `<span class="${dotClass}"></span><span>${label}</span>`;
+  }
+  function refreshBadges(){
+    const state = loadState();
+    const streak = state.streak || 0;
+    const doneDate = state.doneDate || "";
+    streakPill.innerHTML = `<span class="dot"></span><span>Streak: ${streak}</span>`;
+    if (doneDate === todayStr()) setPill(todayPill, "Today: done", true);
+    else setPill(todayPill, "Today: not done", false);
+    renderLogPreview();
+  }
+  function markDoneToday(){
+    const state = loadState();
+    const t = todayStr();
+    if (state.doneDate === t){
+      refreshBadges();
+      return;
+    }
+    const yesterday = ydayStr();
+    const prevDone = state.doneDate;
+    const prevStreak = state.streak || 0;
+
+    let newStreak = 1;
+    if (prevDone === yesterday) newStreak = prevStreak + 1;
+    else newStreak = 1;
+
+    state.doneDate = t;
+    state.streak = newStreak;
+    saveState(state);
+    refreshBadges();
+  }
+
+  // Logs
+  function getLogs(){
+    const state = loadState();
+    return state.logs || [];
+  }
+  function setLogs(logs){
+    const state = loadState();
+    state.logs = logs;
+    saveState(state);
+  }
+  function escapeHtml(s){
+    return (s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
+  }
+  function renderLogPreview(){
+    const logs = getLogs();
+    if (!logs.length){
+      lastLogPill.innerHTML = `<span class="dot"></span><span>No logs</span>`;
+      logPreview.textContent = "No logs yet. Your future self claims they like data.";
+      return;
+    }
+    const last = logs[logs.length-1];
+    const d = new Date(last.date);
+    const pretty = d.toLocaleString();
+    lastLogPill.innerHTML = `<span class="dot good"></span><span>Last: ${pretty}</span>`;
+    logPreview.innerHTML =
+      `Feel: <b>${last.feel}</b> • Upper: <b>${last.upper}/10</b> • Lower: <b>${last.lower}/10</b><br>` +
+      `Notes: ${escapeHtml(last.notes || "—")}`;
+  }
+
+  saveLogBtn.addEventListener('click', ()=>{
+    const logs = getLogs();
+    logs.push({
+      date: new Date().toISOString(),
+      feel: feelEl.value,
+      upper: Number(upperEl.value || 0),
+      lower: Number(lowerEl.value || 0),
+      notes: notesEl.value.trim()
+    });
+    setLogs(logs);
+    notesEl.value = "";
+    refreshBadges();
+    toast("Saved");
+  });
+
+  exportBtn.addEventListener('click', ()=>{
+    const logs = getLogs();
+    const blob = new Blob([JSON.stringify(logs, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "posture_logs.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("Exported");
+  });
+
+  wipeBtn.addEventListener('click', ()=>{
+    if (!confirm("Wipe all data? This includes streak and logs.")) return;
+    localStorage.removeItem(KEY);
+    refreshBadges();
+    toast("Wiped");
+  });
+
+  installHintBtn.addEventListener('click', ()=>{
+    alert("iPhone: open in Safari → Share → Add to Home Screen.\nAndroid: Chrome → ⋮ → Install app / Add to Home screen.");
+  });
+
+  // Init
+  updateUI();
+  refreshBadges();
+</script>
+</body>
+</html>
+
